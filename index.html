@@ -1,59 +1,114 @@
-#### 1、先停止服务器
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主页</title>
 
-注：每台服务器都要执行
+    <style>
+        .div_center {
+            justify-content: center; /* 水平居中 */
+            align-items: center; /* 垂直居中 */
+            padding-left: 100px; /* 内边距 */
+            padding-right: 100px; /* 内边距 */
+        }
 
-uwsgi --stop uwsgi.pid
+        .overlay {
+            position: fixed; /* 固定在视口 */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5); /* 半透明黑色 */
+            z-index: 999; /* 确保在内容上面 */
+            display: none; /* 初始隐藏 */
+        }
 
-nginx -s stop
+        .loader {
+            border: 8px solid #f3f3f3; /* Light grey */
+            border-top: 8px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite; /* 动画效果 */
+            position: absolute; /* 绝对定位 */
+            top: 50%; /* 垂直中心 */
+            left: 50%; /* 水平中心 */
+            transform: translate(-50%, -50%); /* 移动自身的宽高的一半 */
+            z-index: 1000; /* 确保 loader 在其他元素之上 */
+            display: none; /* 初始隐藏 */
+        }
 
-#### 2、到仓库下载最新代码包
+        @keyframes spin {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
 
-https://codehub-g.huawei.com/huben/CBGITSecurityPlatform/merge_requests
+        textarea {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
 
-#### 3、把代码包上传到服务器上，然后解压
+        .preview {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+<div id="overlay" class="overlay" style="display: none;"></div>
+<div id="loader" class="loader" style="display: none;"></div>
 
-#### 4、如果此次上线涉及到模型数据库修改的
+<div class="div_center">
+    <h1>欢迎来到主页</h1>
+    <input type="text" id="inputBox" placeholder="请输入你的问题">
+    <button onclick="submitData()">提交</button>
+</div>
 
-先迁移数据库，有脚本执行的执行数据库数据处理脚本
-
-注：此步只需在160服务器上操作
-
-#### 5、处理项目文件夹
-
-删除原来项目huben目录下的除taskfile文件夹之外所有文件
-
-将第2步解压后CBGITSecurityPlatform-master目录下的文件全部复制到huben目录下
-
-#### 6、迁移数据库
-
-注：此步只需在160服务器上操作
-
-python3 manage.py makemigrations
-
-python3 manage.py migrate
-
-执行 python3 manage.py migrate 如果报错，请删除alarm、asset、learn、filing这4个模块下的迁移文件后，再执行python3 manage.py makemigrations和python3 manage.py migrate
-
-#### 7、重启celery
-
-supervisorctl restart all
-
-#### 8、修改脚本的权限
-
-chmod 777 /home/huben/huben/tools/cloc-1.84/cloc
-
-#### 9、启动nginx和wusgi
-
-nginx
-
-uwsgi  --ini uwsgi.ini
-
-#### 10、登录网站查看
-
+<div class="div_center">
+    <h2>回答:</h2>
+    <!--    <div id="resultBox" style="border: 1px solid #000; padding: 10px;"></div>-->
+    <!--    <textarea id="markdownInput" placeholder="" rows="10"></textarea>-->
+    <div id="preview" class="preview"></div>
+</div>
 
 
-[^1]: 日志文件所在目录：/applog
-[^2]: 前端文件所在目录：/usr/share/nginx/html/dist
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+    async function submitData() {
+        document.getElementById("overlay").style.display = "block";
+        document.getElementById("loader").style.display = "block";
 
+        fetch("/question", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({input_data: document.getElementById("inputBox").value}),
+        })
+            .then(response => response.json())
+            .then(data => {
+                // document.getElementById("resultBox").innerText = data.result;
+                // document.getElementById("markdownInput").innerText = data.result;
+                const markdownText = data.result;
+                document.getElementById("preview").innerHTML = marked.parse(markdownText);
+            })
+            .finally(() => {
+                document.getElementById("overlay").style.display = "none";
+                document.getElementById("loader").style.display = "none";
+            });
 
-
+    }
+</script>
+</body>
+</html>
