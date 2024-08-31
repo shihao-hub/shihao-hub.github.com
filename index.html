@@ -1,13 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title><!DOCTYPE html>
-        <html lang="zh">
-        <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>主页</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主页</title>
 
     <style>
         .div_center {
@@ -93,33 +89,18 @@
         document.getElementById("overlay").style.display = "block";
         document.getElementById("loader").style.display = "block";
 
-        fetch("https://chat.lify.vip/api/chat/openai", {
+        fetch("https://ae5f-2409-8a30-7ca6-3430-1de8-e9a7-ea66-731e.ngrok-free.app/question", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "x-lobe-chat-auth": "eyJhbGciOiJIUzI1NiJ9.eyJhY2Nlc3NDb2RlIjoiIiwibWVzc2FnZUlkIjoiNzQwNDk3NSIsIm9wZW5pZCI6Im9BRHdsNlpGUDZ1OHhrcExGUzVHY3ZxZndiTWsiLCJ1c2VySWQiOiJlMzY3NDU0Zi05YTVkLTQ1MzMtYTY1ZC1mOTFlZmRjOTBhN2MiLCJpYXQiOjE3MjUwNDE3MzN9.04QEH1DYln0EKydOqdstRvBtZoLPV8-4QpNJhKTNv_o"
             },
-            body: JSON.stringify({
-                "frequency_penalty": 0,
-                "max_tokens": 4096,
-                "messages": [{"content": document.getElementById("inputBox").value, "role": "user"}],
-                "model": "gpt-4o-mini",
-                "presence_penalty": 0,
-                "stream": true,
-                "temperature": 0.6,
-                "top_p": 0.99,
-            }),
+            body: JSON.stringify({input_data: document.getElementById("inputBox").value}),
         })
-            .then(response => response.text())
+            .then(response => response.json())
             .then(data => {
                 // document.getElementById("resultBox").innerText = data.result;
                 // document.getElementById("markdownInput").innerText = data.result;
-                let res = [];
-                const regex = /data:\s*"(.*?)"/g;
-                while ((matches = regex.exec(data)) !== null) {
-                    res.push(matches[1]);
-                }
-                const markdownText = res.join("");
+                const markdownText = data.result;
                 document.getElementById("preview").innerHTML = marked.parse(markdownText);
             })
             .finally(() => {
@@ -129,11 +110,5 @@
 
     }
 </script>
-</body>
-</html>
-</title>
-</head>
-<body>
-
 </body>
 </html>
